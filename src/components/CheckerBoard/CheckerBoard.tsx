@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import "./CheckerBoard.scss";
 import pieceImgLight from "../../images/light.png";
@@ -19,10 +20,6 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
   onCapturePieces,
 }: CheckerBoardProps) => {
   const [currentPlayer, setCurrentPlayer] = useState<Players>(Players.Person);
-  const [selectedCell, setSelectedCell] = useState<{
-    row: number;
-    col: number;
-  } | null>(null);
   const [validMoves, setValidMoves] = useState<{ row: number; col: number }[]>(
     []
   );
@@ -32,7 +29,6 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     if (currentPlayer !== Players.Person) return;
     const cell = board[row][col];
     if (cell.player === Players.Person) {
-      setSelectedCell({ row, col });
       setValidMoves(getValidMoves(row, col));
     }
   };
@@ -51,7 +47,6 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     if (currentPlayer !== Players.Person) return;
     if (validMoves.some((move) => move.row === endRow && move.col === endCol)) {
       makeMove(startRow, startCol, endRow, endCol);
-      setSelectedCell(null);
       setValidMoves([]);
     }
   };
@@ -61,13 +56,6 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     const startRow = parseInt(e.dataTransfer.getData("row"));
     const startCol = parseInt(e.dataTransfer.getData("col"));
     handleMove(startRow, startCol, dropRow, dropCol);
-  };
-
-  const handleCellClick = (row: number, col: number) => {
-    handleCellInteraction(row, col);
-    if (selectedCell) {
-      handleMove(selectedCell.row, selectedCell.col, row, col);
-    }
   };
 
   const handleDragStart = (e: React.DragEvent, row: number, col: number) => {
@@ -301,7 +289,8 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
                 }`}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
-                onClick={() => handleCellClick(rowIndex, colIndex)}
+                onMouseOver={() => handleCellInteraction(rowIndex, colIndex)}
+                onMouseOut={() => setValidMoves([])}
               >
                 {cell.piece && (
                   <div

@@ -13,7 +13,7 @@ A simple checkers game app to be played with computer.
 
 * Game mechanics: taking turns, basic moves and jumps over the enemy checkers.
 * Players can either click or drag-n-drop checkers using a mouse.
-* For a possible move cells are hightlighted on mouse over, click and drag checker
+* For a possible move cells are hightlighted on mouse over and drag checker
 * If there is an opportunity to capture an enemy checker - it is the only valid move
 * Computer player: could make a move to any random valid cell
 * Number of moves and pieces left for each of players are calculated
