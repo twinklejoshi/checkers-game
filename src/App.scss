@@ -1,0 +1,31 @@
+$primaryColor: #0083b0;
+$secondaryColor: #17445f;
+$headerColor: #6535ab;
+$primaryColor: #ffffff;
+$secondaryColor: #888888;
+
+$mainFontSize : 2.5vh;
+$secondaryFontSize : 2vh;
+
+$fontFamily : Helvetica, Arial, sans-serif;
+
+:root {
+  --appPrimaryBgColor: #0083b0;
+  --appSecondaryBgColor: #014f69;
+  --primaryColor: #ffffff;
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+.App {
+  text-align: center;
+  height: 100vh;
+  width: 100%;
+  color: var(--primaryColor);
+  background-image: linear-gradient(to right, #81d6e9, var(--appPrimaryBgColor)); 
+  font-weight: bold;
+  font-family: 'Roboto', sans-serif;
+  overflow: hidden;
+}

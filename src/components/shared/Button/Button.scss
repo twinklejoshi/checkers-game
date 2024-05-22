@@ -1,0 +1,46 @@
+.btn {
+  border: 0;
+  border-radius: 4px;
+  background-color: var(--primaryColor);
+  color: var(--appPrimaryBgColor);
+  padding: 15px 20px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+
+  &:hover:enabled {
+    opacity: 0.9;
+  }
+
+  &:focus:enabled {
+    outline: 0;
+    transform: scale(0.98);
+  }
+
+  &:active:enabled {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    border: 1px solid #999999;
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    border: 0;
+    box-shadow: 0 0;
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+  }
+}
+
+.confirm {
+  background-color: var(--appPrimaryBgColor);
+  color:  var(--primaryColor);
+}
+
+.cancel {
+  background-color: red;
+  color: var(--primaryColor);
+}
