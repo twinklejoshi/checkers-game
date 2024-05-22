@@ -1,6 +1,6 @@
 # Checkers game
 
-### Live demo: 
+### Live demo: https://tj-checkers-game.web.app/
 
 ## Description
 
