@@ -23,7 +23,6 @@ export const Button: React.FC<ButtonProps> = ({
     <button
       type={type}
       className={`btn ${className}`}
-      id="start-btn"
       disabled={disabled}
       onClick={onButtonClick}
     >

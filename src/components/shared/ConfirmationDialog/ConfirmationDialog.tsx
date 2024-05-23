@@ -4,14 +4,18 @@ import { Button } from "../Button/Button";
 
 interface ConfirmationDialogProps {
   message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
+  label1: string;
+  label2: string;
+  onButtonClick1: () => void;
+  onButtonClick2: () => void;
 }
 
 export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   message,
-  onConfirm,
-  onCancel,
+  label1,
+  label2,
+  onButtonClick1,
+  onButtonClick2,
 }) => {
   return (
     <div className="dialog-overlay">
@@ -19,11 +23,11 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         <p>{message}</p>
         <div className="buttons-group">
           <Button
-            label="Confirm"
+            label={label1}
             className="confirm"
-            onButtonClick={onConfirm}
+            onButtonClick={onButtonClick1}
           />
-          <Button label="Cancel" className="cancel" onButtonClick={onCancel} />
+          <Button label={label2} className="cancel" onButtonClick={onButtonClick2} />
         </div>
       </div>
     </div>

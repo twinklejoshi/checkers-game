@@ -11,12 +11,7 @@ export enum Pieces {
 }
 
 export interface CheckerBoardProps {
-  board: Cell[][];
-  setBoard: React.Dispatch<React.SetStateAction<Cell[][]>>;
-  piecesLeft: PlayersPiecesInfo;
-  moves: PlayersPiecesInfo;
-  onMovePieces: (platersMoves: PlayersPiecesInfo) => void;
-  onCapturePieces: (playersPiecesLeft: PlayersPiecesInfo) => void;
+  gameOver: (isOver: boolean) => void;
 }
 
 export interface Cell {

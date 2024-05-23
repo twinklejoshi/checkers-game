@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import "./CheckerBoard.scss";
 import pieceImgLight from "../../images/light.png";
 import pieceImgDark from "../../images/brown.png";
@@ -10,26 +10,44 @@ import {
   calculatePlayersPiecesLeft,
   isWithinBounds,
 } from "./utils/helper";
+import { CheckBoardContext } from "../../contexts";
 
 export const CheckerBoard: React.FC<CheckerBoardProps> = ({
-  board,
-  setBoard,
-  piecesLeft,
-  moves,
-  onMovePieces,
-  onCapturePieces,
+  gameOver,
 }: CheckerBoardProps) => {
-  const [currentPlayer, setCurrentPlayer] = useState<Players>(Players.Person);
+  const {
+    board,
+    setBoard,
+    piecesLeft,
+    setPiecesLeft,
+    moves,
+    setMoves,
+    currentPlayer,
+    setCurrentPlayer,
+  } = useContext(CheckBoardContext);
   const [validMoves, setValidMoves] = useState<{ row: number; col: number }[]>(
     []
   );
+  const [personValidMoves, setPersonValidMoves] = useState<
+    {
+      startRow: number;
+      startCol: number;
+      endRow: number;
+      endCol: number;
+    }[]
+  >([]);
 
   //if player is person, get valid moves for the selected cell
   const handleCellInteraction = (row: number, col: number) => {
     if (currentPlayer !== Players.Person) return;
     const cell = board[row][col];
     if (cell.player === Players.Person) {
-      setValidMoves(getValidMoves(row, col));
+      const selectedMoves = personValidMoves
+        .filter(
+          ({ startRow, startCol }) => startRow === row && startCol === col
+        )
+        .map((move) => ({ row: move.endRow, col: move.endCol }));
+      setValidMoves(selectedMoves);
     }
   };
 
@@ -48,6 +66,8 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     if (validMoves.some((move) => move.row === endRow && move.col === endCol)) {
       makeMove(startRow, startCol, endRow, endCol);
       setValidMoves([]);
+      setPersonValidMoves([]);
+      setCurrentPlayer(Players.Computer);
     }
   };
 
@@ -167,6 +187,41 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     return captureMoves.length > 0 ? captureMoves : moves;
   };
 
+  const getAllValidMoves = (player: Players) => {
+    // Initialize an array to store all valid moves for the player.
+    const validMoves: {
+      startRow: number;
+      startCol: number;
+      endRow: number;
+      endCol: number;
+    }[] = [];
+
+    for (let row = 0; row < BOARD_SIZE; row++) {
+      for (let col = 0; col < BOARD_SIZE; col++) {
+        if (board[row][col].player === player) {
+          // Get all valid moves for the piece at the current position.
+          const moves = getValidMoves(row, col);
+
+          // Add each valid move to the validMoves array.
+          for (const move of moves) {
+            validMoves.push({
+              startRow: row,
+              startCol: col,
+              endRow: move.row,
+              endCol: move.col,
+            });
+          }
+        }
+      }
+    }
+
+    // If there are no valid moves, return null indicating no move can be made.
+    if (validMoves.length === 0) {
+      return null; //end game
+    }
+    return validMoves;
+  };
+
   const makeMove = (
     startRow: number,
     startCol: number,
@@ -199,7 +254,7 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
         newBoard[capturedRow][capturedCol] = { piece: null, player: null };
 
         // Call the callback function to update the number of pieces left for the player
-        onCapturePieces(calculatePlayersPiecesLeft(currentPlayer, piecesLeft));
+        setPiecesLeft(calculatePlayersPiecesLeft(currentPlayer, piecesLeft));
       }
 
       // Return the updated board state
@@ -207,71 +262,45 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     });
 
     // Call the callback function to update the move count for the player
-    onMovePieces(calculatePlayersMoves(currentPlayer, moves));
-
-    // Switch to the other player
-    setCurrentPlayer(
-      currentPlayer === Players.Person ? Players.Computer : Players.Person
-    );
+    setMoves(calculatePlayersMoves(currentPlayer, moves));
   };
 
   useEffect(() => {
-    if (currentPlayer === Players.Computer) {
-      const computerMove = getComputerMove();
-      if (computerMove) {
-        setTimeout(
-          () =>
+    const playerValidMoves = getAllValidMoves(currentPlayer);
+    if (!playerValidMoves) {
+      gameOver(true);
+    } else {
+      if (currentPlayer === Players.Computer) {
+        const computerMove = getComputerMove(playerValidMoves);
+        if (computerMove) {
+          const timeoutId = setTimeout(() => {
             makeMove(
               computerMove.startRow,
               computerMove.startCol,
               computerMove.endRow,
               computerMove.endCol
-            ),
-          1000
-        );
+            );
+            setCurrentPlayer(Players.Person);
+          }, 1000);
+          return () => clearTimeout(timeoutId);
+        }
+      } else {
+        setPersonValidMoves(playerValidMoves);
       }
     }
   }, [currentPlayer]);
 
-  const getComputerMove = () => {
-    // Initialize an array to store all valid moves for the computer player.
-    const validMoves: {
+  const getComputerMove = (
+    validMoves: {
       startRow: number;
       startCol: number;
       endRow: number;
       endCol: number;
-    }[] = [];
-
-    // Iterate through all cells of the board.
-    for (let row = 0; row < BOARD_SIZE; row++) {
-      for (let col = 0; col < BOARD_SIZE; col++) {
-        // Check if the current cell contains a computer player's piece.
-        if (board[row][col].player === Players.Computer) {
-          // Get all valid moves for the piece at the current position.
-          const moves = getValidMoves(row, col);
-
-          // Add each valid move to the validMoves array.
-          for (const move of moves) {
-            validMoves.push({
-              startRow: row,
-              startCol: col,
-              endRow: move.row,
-              endCol: move.col,
-            });
-          }
-        }
-      }
-    }
-
-    // If there are no valid moves, return null indicating no move can be made.
-    if (validMoves.length === 0) {
-      return null;
-    }
-
+    }[]
+  ) => {
     // Randomly select one of the valid moves.
     const selectedMove =
       validMoves[Math.floor(Math.random() * validMoves.length)];
-
     // Return the selected move.
     return selectedMove;
   };

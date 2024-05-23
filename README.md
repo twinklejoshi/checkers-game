@@ -17,6 +17,7 @@ A simple checkers game app to be played with computer.
 * If there is an opportunity to capture an enemy checker - it is the only valid move
 * Computer player: could make a move to any random valid cell
 * Number of moves and pieces left for each of players are calculated
+* Game is over when either of the player has no valid moves left and player with more pieces left wins
 
 ## Tech stack
 * React

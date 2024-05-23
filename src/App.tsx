@@ -1,13 +1,16 @@
 import React from "react";
 import "./App.scss";
 import WelcomePage from "./components/WelcomePage/WelcomePage";
-import { TimerProvider } from "./contexts";
+import { CheckBoardProvider, TimerProvider } from "./contexts";
 
 const App: React.FC = () => {
   return (
     <div className="App">
       <TimerProvider>
-        <WelcomePage />
+        <CheckBoardProvider>
+          {" "}
+          <WelcomePage />
+        </CheckBoardProvider>
       </TimerProvider>
     </div>
   );

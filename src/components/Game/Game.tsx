@@ -1,13 +1,8 @@
 import { useContext, useState } from "react";
 import "./Game.scss";
 import { Button, PlayerCard, ConfirmationDialog, GameTimer } from "../shared";
-import {
-  Cell,
-  CheckerBoard,
-  PlayersPiecesInfo,
-  initialBoard,
-} from "../CheckerBoard";
-import { TimerContext } from "../../contexts";
+import { CheckerBoard, Players, initialBoard } from "../CheckerBoard";
+import { CheckBoardContext, TimerContext } from "../../contexts";
 
 interface GameProps {
   name: string;
@@ -16,28 +11,28 @@ interface GameProps {
 
 export const Game: React.FC<GameProps> = ({ name, onQuitGame }: GameProps) => {
   const [isDialogVisible, setIsDialogVisible] = useState(false);
-  const [board, setBoard] = useState<Cell[][]>(initialBoard); 
-  const [piecesLeft, setPiecesLeft] = useState<PlayersPiecesInfo>({
-    player: 12,
-    computer: 12,
-  });
-  const [moves, setMoves] = useState<PlayersPiecesInfo>({
-    player: 0,
-    computer: 0,
-  });
+  const [isGameOver, setIsGameOver] = useState(false);
+  const {
+    setBoard,
+    piecesLeft,
+    setPiecesLeft,
+    moves,
+    setMoves,
+    setCurrentPlayer,
+  } = useContext(CheckBoardContext);
   const { setTime, setSeconds } = useContext(TimerContext);
 
-  const handleConfirmationDialog = () => {
+  const showDialog = () => {
     setIsDialogVisible(true);
   };
 
-  const handleConfirmationDialogConfirm = () => {
+  const confirmQuitGame = () => {
     setIsDialogVisible(false);
     resetGame();
     onQuitGame();
   };
 
-  const handleConfirmationDialogCancel = () => {
+  const hideDialog = () => {
     setIsDialogVisible(false);
   };
 
@@ -53,6 +48,18 @@ export const Game: React.FC<GameProps> = ({ name, onQuitGame }: GameProps) => {
     });
     setTime("00:00");
     setSeconds(0);
+    setCurrentPlayer(Players.Person);
+    setIsGameOver(false);
+  };
+
+  const startAgain = () => {
+    resetGame();
+    hideDialog();
+  };
+
+  const handleGameOver = (isOver: boolean) => {
+    setIsGameOver(isOver);
+    showDialog();
   };
 
   return (
@@ -66,24 +73,32 @@ export const Game: React.FC<GameProps> = ({ name, onQuitGame }: GameProps) => {
         />
         <div className="checkerBoard">
           <div>
-            <CheckerBoard
-              board={board}
-              setBoard={setBoard}
-              piecesLeft={piecesLeft}
-              moves={moves}
-              onMovePieces={setMoves}
-              onCapturePieces={setPiecesLeft}
-            />
+            <CheckerBoard gameOver={handleGameOver} />
+            {isDialogVisible && isGameOver && (
+              <ConfirmationDialog
+                message={
+                  piecesLeft.player > piecesLeft.computer
+                    ? `You win \u{1F3C6}`
+                    : `You lose \u{1F61E}`
+                }
+                label1="Restart game"
+                label2="Quit game"
+                onButtonClick1={startAgain}
+                onButtonClick2={confirmQuitGame}
+              />
+            )}
           </div>
           <div className="buttons-group">
             <Button label={"Reset game"} onButtonClick={resetGame} />
-            <Button label={"Quit Game"} onButtonClick={handleConfirmationDialog} />
+            <Button label={"Quit game"} onButtonClick={showDialog} />
           </div>
-          {isDialogVisible && (
+          {isDialogVisible && !isGameOver && (
             <ConfirmationDialog
               message="Are you sure you want to quit the game?"
-              onConfirm={handleConfirmationDialogConfirm}
-              onCancel={handleConfirmationDialogCancel}
+              label1="Confirm"
+              label2="Cancel"
+              onButtonClick1={confirmQuitGame}
+              onButtonClick2={hideDialog}
             />
           )}
         </div>
