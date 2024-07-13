@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import "./WelcomePage.scss";
 import Game from "../Game/Game";
-import { TimerContext } from "../../contexts";
+import { CheckBoardProvider, TimerContext } from "../../contexts";
 import { Button, InputForm } from "../shared";
 
 const WelcomePage: React.FC = () => {
@@ -62,7 +62,10 @@ const WelcomePage: React.FC = () => {
         />
       </div>
       <div className={`screen`}>
+      <CheckBoardProvider>
         <Game name={name} onQuitGame={handleQuit} />{" "}
+      </CheckBoardProvider>
+
       </div>
     </>
   );

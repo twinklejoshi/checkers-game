@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import "./Game.scss";
 import { Button, PlayerCard, ConfirmationDialog, GameTimer } from "../shared";
 import { CheckerBoard, Players, initialBoard } from "../CheckerBoard";
@@ -12,6 +12,7 @@ interface GameProps {
 export const Game: React.FC<GameProps> = ({ name, onQuitGame }: GameProps) => {
   const [isDialogVisible, setIsDialogVisible] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isReset, setIsReset] = useState(false);
   const {
     setBoard,
     piecesLeft,
@@ -50,6 +51,7 @@ export const Game: React.FC<GameProps> = ({ name, onQuitGame }: GameProps) => {
     setSeconds(0);
     setCurrentPlayer(Players.Person);
     setIsGameOver(false);
+    setIsReset(true);
   };
 
   const startAgain = () => {
@@ -62,6 +64,12 @@ export const Game: React.FC<GameProps> = ({ name, onQuitGame }: GameProps) => {
     showDialog();
   };
 
+  useEffect(() => {
+    if (isReset) {
+      setIsReset(false);
+    }
+  }, [isReset]);
+
   return (
     <>
       <GameTimer />
@@ -73,7 +81,7 @@ export const Game: React.FC<GameProps> = ({ name, onQuitGame }: GameProps) => {
         />
         <div className="checkerBoard">
           <div>
-            <CheckerBoard gameOver={handleGameOver} />
+            <CheckerBoard gameOver={handleGameOver} isReset={isReset}/>
             {isDialogVisible && isGameOver && (
               <ConfirmationDialog
                 message={

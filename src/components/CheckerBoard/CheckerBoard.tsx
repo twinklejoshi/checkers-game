@@ -13,7 +13,7 @@ import {
 import { CheckBoardContext } from "../../contexts";
 
 export const CheckerBoard: React.FC<CheckerBoardProps> = ({
-  gameOver,
+  gameOver, isReset
 }: CheckerBoardProps) => {
   const {
     board,
@@ -95,7 +95,7 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
   ): boolean => {
     // Determine the direction of movement based on the current player.
     // Players.Person moves upward (-1), Players.Computer moves downward (+1).
-    const direction = currentPlayer === Players.Person ? -1 : 1;
+    //const direction = currentPlayer === Players.Person ? -1 : 1;
 
     // Calculate the difference in rows and columns between the start and end positions.
     const rowDiff = endRow - startRow;
@@ -108,7 +108,7 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
 
     // Check for a regular move (one step diagonally).
     // A regular move is valid if it's a one-step diagonal move in the correct direction.
-    const isRegularMove = Math.abs(colDiff) === 1 && rowDiff === direction;
+    const isRegularMove = Math.abs(colDiff) === 1 && Math.abs(rowDiff) === 1;
     // Check for a capture move (two steps diagonally).
     // A capture move is valid if it's a two-step diagonal move.
     const isCaptureMove = Math.abs(colDiff) === 2 && Math.abs(rowDiff) === 2;
@@ -134,22 +134,40 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
 
   const getValidMoves = (
     row: number,
-    col: number
+    col: number,
+    isKing: boolean
   ): { row: number; col: number }[] => {
     const moves: { row: number; col: number }[] = [];
 
-    // Define movement directions based on the current player.
-    // Players.Person moves upward, Players.Computer moves downward.
-    const directions =
-      currentPlayer === Players.Person
+    const directions = isKing
         ? [
             [-1, -1], // Up-left
-            [-1, 1], // Up-right
+            [-1, 1],  // Up-right
+            [1, -1],  // Down-left
+            [1, 1],   // Down-right
           ]
-        : [
-            [1, -1], // Down-left
-            [1, 1], // Down-right
-          ];
+        : currentPlayer === Players.Person
+            ? [
+                [-1, -1], // Up-left
+                [-1, 1],  // Up-right
+              ]
+            : [
+                [1, -1],  // Down-left
+                [1, 1],   // Down-right
+              ];
+
+    // Define movement directions based on the current player.
+    // Players.Person moves upward, Players.Computer moves downward.
+    // const directions =
+    //   currentPlayer === Players.Person
+    //     ? [
+    //         [-1, -1], // Up-left
+    //         [-1, 1], // Up-right
+    //       ]
+    //     : [
+    //         [1, -1], // Down-left
+    //         [1, 1], // Down-right
+    //       ];
 
     // Iterate over each direction to calculate possible moves.
     for (const [dRow, dCol] of directions) {
@@ -181,10 +199,11 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     }
 
     // Filter the moves to prioritize capture moves.
-    const captureMoves = moves.filter((move) => Math.abs(move.row - row) === 2);
+    // const captureMoves = moves.filter((move) => Math.abs(move.row - row) === 2);
 
-    // Return capture moves if any exist, otherwise return all valid moves.
-    return captureMoves.length > 0 ? captureMoves : moves;
+    // // Return capture moves if any exist, otherwise return all valid moves.
+    // return captureMoves.length > 0 ? captureMoves : moves;
+    return moves;
   };
 
   const getAllValidMoves = (player: Players) => {
@@ -198,9 +217,10 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
 
     for (let row = 0; row < BOARD_SIZE; row++) {
       for (let col = 0; col < BOARD_SIZE; col++) {
-        if (board[row][col].player === player) {
+        const cell =board[row][col];
+        if (cell.player === player) {
           // Get all valid moves for the piece at the current position.
-          const moves = getValidMoves(row, col);
+          const moves = getValidMoves(row, col, cell.isKing);
 
           // Add each valid move to the validMoves array.
           for (const move of moves) {
@@ -219,7 +239,12 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     if (validMoves.length === 0) {
       return null; //end game
     }
-    return validMoves;
+    //return validMoves;
+     // Filter the moves to prioritize capture moves.
+     const captureMoves = validMoves.filter((move) => Math.abs(move.startRow - move.endRow) === 2);
+
+     // Return capture moves if any exist, otherwise return all valid moves.
+     return captureMoves.length > 0 ? captureMoves : validMoves;
   };
 
   const makeMove = (
@@ -232,6 +257,7 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
     setBoard((prevBoard) => {
       // Create a new copy of the board
       const newBoard = [...prevBoard];
+      const piece = newBoard[startRow][startCol];
 
       // Create new copies of the rows involved in the move
       newBoard[endRow] = [...newBoard[endRow]];
@@ -240,7 +266,7 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
       // Move the piece to the new position
       newBoard[endRow][endCol] = { ...newBoard[startRow][startCol] };
       // Empty the starting position
-      newBoard[startRow][startCol] = { piece: null, player: null };
+      newBoard[startRow][startCol] = { piece: null, player: null, isKing: false };
 
       // Check if the move is a capture move (two steps)
       if (Math.abs(endRow - startRow) === 2) {
@@ -251,11 +277,14 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
         // Create a new copy of the row containing the captured piece
         newBoard[capturedRow] = [...newBoard[capturedRow]];
         // Remove the captured piece
-        newBoard[capturedRow][capturedCol] = { piece: null, player: null };
+        newBoard[capturedRow][capturedCol] = { piece: null, player: null, isKing: false };
 
         // Call the callback function to update the number of pieces left for the player
         setPiecesLeft(calculatePlayersPiecesLeft(currentPlayer, piecesLeft));
       }
+      if ((piece.player === Players.Person && endRow === 0) || (piece.player === Players.Computer && endRow === BOARD_SIZE - 1)) {
+        newBoard[endRow][endCol].isKing = true;
+    }
 
       // Return the updated board state
       return newBoard;
@@ -266,29 +295,29 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
   };
 
   useEffect(() => {
-    const playerValidMoves = getAllValidMoves(currentPlayer);
-    if (!playerValidMoves) {
-      gameOver(true);
-    } else {
-      if (currentPlayer === Players.Computer) {
-        const computerMove = getComputerMove(playerValidMoves);
-        if (computerMove) {
-          const timeoutId = setTimeout(() => {
-            makeMove(
-              computerMove.startRow,
-              computerMove.startCol,
-              computerMove.endRow,
-              computerMove.endCol
-            );
-            setCurrentPlayer(Players.Person);
-          }, 1000);
-          return () => clearTimeout(timeoutId);
-        }
+      const playerValidMoves = getAllValidMoves(currentPlayer);
+      if (!playerValidMoves) {
+        gameOver(true);
       } else {
-        setPersonValidMoves(playerValidMoves);
+        if (currentPlayer === Players.Computer) {
+          const computerMove = getComputerMove(playerValidMoves);
+          if (computerMove) {
+            const timeoutId = setTimeout(() => {
+              makeMove(
+                computerMove.startRow,
+                computerMove.startCol,
+                computerMove.endRow,
+                computerMove.endCol
+              );
+              setCurrentPlayer(Players.Person);
+            }, 1000);
+            return () => clearTimeout(timeoutId);
+          }
+        } else {
+          setPersonValidMoves(playerValidMoves);
+        }
       }
-    }
-  }, [currentPlayer]);
+  }, [currentPlayer, isReset]);
 
   const getComputerMove = (
     validMoves: {
@@ -306,6 +335,7 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
   };
 
   return (
+    
     <div>
       <div className="board">
         {board.map((row, rowIndex) => (
@@ -338,6 +368,7 @@ export const CheckerBoard: React.FC<CheckerBoardProps> = ({
                     />
                   </div>
                 )}
+               
                 {validMoves.some(
                   (move) => move.row === rowIndex && move.col === colIndex
                 ) && <div className="highlight"></div>}

@@ -7,10 +7,10 @@ export const initialBoard: Cell[][] = Array.from(
   (_, row) =>
     Array.from({ length: BOARD_SIZE }, (_, col) => {
       if (row < 3 && (row + col) % 2 === 1)
-        return { piece: Pieces.Computer, player: Players.Computer };
+        return { piece: Pieces.Computer, player: Players.Computer, isKing: false };
       if (row >= BOARD_SIZE - 3 && (row + col) % 2 === 1)
-        return { piece: Pieces.Player, player: Players.Person };
-      return { piece: null, player: null };
+        return { piece: Pieces.Player, player: Players.Person, isKing: false };
+      return { piece: null, player: null, isKing: false };
     })
 );
 

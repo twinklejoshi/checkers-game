@@ -35,7 +35,6 @@ export const CheckBoardProvider = ({ children }) => {
         setPiecesLeft,
         moves,
         setMoves}}>
-            {console.log(piecesLeft)}
       {children}
     </CheckBoardContext.Provider>
   );
